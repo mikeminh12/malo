@@ -27,10 +27,11 @@
 
         onAuthStateChanged(auth, user => {
             if (user) document.getElementById('uDisplay').innerText = user.email.split('@')[0];
-            else window.location.href = 'login.html';
+            else window.location.href = 'index.html';
         });
 
         document.getElementById('btnLogout').onclick = () => signOut(auth);
     </script>
 </body>
+
 </html>
