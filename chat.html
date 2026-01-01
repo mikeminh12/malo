@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Malo - Kết bạn & Nhắn tin</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        :root { --blue: #0068ff; --light-blue: #e5efff; }
+        body { display: flex; height: 100vh; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; overflow: hidden; }
+        
+        /* Sidebar */
+        .side-bar { width: 64px; background: var(--blue); display: flex; flex-direction: column; align-items: center; padding: 20px 0; color: white; flex-shrink: 0; }
+        .side-btn { font-size: 24px; cursor: pointer; margin-bottom: 30px; opacity: 0.8; }
+        
+        /* Danh sách */
+        .left-col { width: 340px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
+        .tabs { display: flex; background: #fff; border-bottom: 1px solid #eee; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: 600; color: #65676b; }
+        .tab.active { color: var(--blue); border-bottom: 3px solid var(--blue); }
+        
+        .list-box { flex: 1; overflow-y: auto; }
+        .user-card { padding: 12px 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f2f2f2; cursor: pointer; }
+        .user-card:hover { background: #f5f5f5; }
+        .user-card.active { background: var(--light-blue); }
+        .avatar { width: 45px; height: 45px; background: #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+
+        /* Vùng Chat */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #eef2f8; position: relative; min-height: 0; }
+        .chat-header { height: 60px; background: white; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #ddd; font-weight: 600; }
+        
+        #msgBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 0;pointer-events: none;  }
+        .msg { max-width: 65%; padding: 10px 14px; border-radius: 18px; font-size: 14.5px; line-height: 1.4; word-wrap: break-word; }
+        .msg.me { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 2px; }
+        .msg.them { align-self: flex-start; background: white; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        /* Sửa lỗi ô nhập liệu bằng z-index và position */
+        .chat-input-container { 
+            padding: 15px; 
+            background: white; 
+            border-top: 1px solid #ddd; 
+            display: flex; 
+            gap: 10px; 
+            position: relative;
+            z-index: 999; 
+        }
+        #txtMsg { 
+            flex: 1; 
+            padding: 12px 18px; 
+            border: 1px solid #ddd; 
+            border-radius: 24px; 
+            outline: none; 
+            font-size: 15px;
+            background: #f0f2f5;
+        }
+        #txtMsg:focus { border-color: var(--blue); background: white; }
+        #btnSend { background: var(--blue); color: white; border: none; padding: 0 25px; border-radius: 24px; cursor: pointer; font-weight: 600; pointer-events: auto;}
+        
+        /* Badge */
+        .badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; margin-left: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="side-bar">
+        <div class="side-btn" onclick="location.reload()">Ⓜ️</div>
+        <div class="side-btn" onclick="location.href='account.html'">👤</div>
+    </div>
+
+    <div class="left-col">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('chats', this)">Tin nhắn</div>
+            <div class="tab" onclick="switchTab('discover', this)">Khám phá <span id="reqBadge" class="badge" style="display:none">0</span></div>
+        </div>
+        <div class="list-box" id="mainList">
+            </div>
+    </div>
+
+    <div class="chat-area">
+        <div class="chat-header" id="chatTitle">Chào mừng đến với Malo</div>
+        <div id="msgBox"></div>
+        <div class="chat-input-container">
+            <input type="text" id="txtMsg" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button id="btnSend">Gửi</button>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module">
+        import { auth, db } from './firebase.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        let myName = "", currentChat = null, unsubMsg = null;
+        const msgInp = document.getElementById('txtMsg');
+        const showToast = (t) => Toastify({text: t, gravity: "top", position: "right", style: {background: "#0068ff"}}).showToast();
+
+        onAuthStateChanged(auth, async user => {
+            if (user) {
+                myName = user.email.split('@')[0];
+                // Tự động đảm bảo user tồn tại trong Firestore
+                await setDoc(doc(db, "users", myName), { username: myName, email: user.email }, { merge: true });
+                initMalo();
+            } else { window.location.href = 'login.html'; }
+        });
+
+        function initMalo() {
+            loadFriends(); // Mặc định tab chat
+            listenRequests(); // Lắng nghe lời mời kết bạn để hiện badge
+        }
+
+        // TAB 1: TIN NHẮN (BẠN BÈ ĐÃ ĐỒNG Ý)
+        function loadFriends() {
+            onSnapshot(collection(db, "users", myName, "friends"), (snap) => {
+                const list = document.getElementById('mainList');
+                list.innerHTML = snap.empty ? '<p style="text-align:center;color:#999;margin-top:20px">Chưa có bạn bè</p>' : '';
+                snap.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = `user-card ${currentChat === d.id ? 'active' : ''}`;
+                    div.innerHTML = `<div class="avatar" style="background:#0068ff">${d.id[0].toUpperCase()}</div><div><strong>${d.id}</strong></div>`;
+                    div.onclick = () => startChat(d.id, div);
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        // TAB 2: KHÁM PHÁ & LỜI MỜI
+        async function loadDiscover() {
+            const list = document.getElementById('mainList');
+            list.innerHTML = '<div style="padding:10px; font-weight:bold; color:var(--blue)">Lời mời kết bạn</div>';
+            
+            // 1. Hiện lời mời
+            const reqSnap = await getDocs(collection(db, "users", myName, "requests"));
+            reqSnap.forEach(d => {
+                const div = document.createElement('div');
+                div.className = 'user-card';
+                div.innerHTML = `<span>${d.id}</span> <button onclick="acceptFriend('${d.id}')" style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:5px">Đồng ý</button>`;
+                list.appendChild(div);
+            });
+
+            // 2. Hiện người dùng khác để kết bạn
+            list.innerHTML += '<div style="padding:10px; font-weight:bold; color:var(--blue); margin-top:10px">Người dùng mới</div>';
+            const allSnap = await getDocs(collection(db, "users"));
+            allSnap.forEach(d => {
+                if(d.id !== myName) {
+                    const div = document.createElement('div');
+                    div.className = 'user-card';
+                    div.innerHTML = `<span>${d.id}</span> <button onclick="sendRequest('${d.id}')" style="background:var(--blue);color:white;border:none;padding:5px 10px;border-radius:5px">Kết bạn</button>`;
+                    list.appendChild(div);
+                }
+            });
+        }
+
+        // LOGIC KẾT BẠN
+        window.sendRequest = async (to) => {
+            await setDoc(doc(db, "users", to, "requests", myName), { from: myName, time: serverTimestamp() });
+            showToast("Đã gửi lời mời!");
+        };
+
+        window.acceptFriend = async (who) => {
+            await setDoc(doc(db, "users", myName, "friends", who), { joined: serverTimestamp() });
+            await setDoc(doc(db, "users", who, "friends", myName), { joined: serverTimestamp() });
+            await deleteDoc(doc(db, "users", myName, "requests", who));
+            showToast("Tuyệt vời! Hai bạn đã là bạn bè.");
+            loadDiscover(); 
+        };
+
+        function listenRequests() {
+            onSnapshot(collection(db, "users", myName, "requests"), snap => {
+                const b = document.getElementById('reqBadge');
+                if(!snap.empty) { b.innerText = snap.size; b.style.display = 'inline'; }
+                else { b.style.display = 'none'; }
+            });
+        }
+
+        // LOGIC CHAT
+        function startChat(target, el) {
+            currentChat = target;
+            document.getElementById('chatTitle').innerText = "Đang chat với: " + target;
+            document.querySelectorAll('.user-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            const roomID = [myName, target].sort().join("_");
+            if(unsubMsg) unsubMsg();
+            const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "asc"));
+            unsubMsg = onSnapshot(q, snap => {
+                const box = document.getElementById('msgBox');
+                box.innerHTML = '';
+                snap.forEach(d => {
+                    const isMe = d.data().uid === auth.currentUser.uid;
+                    box.innerHTML += `<div class="msg ${isMe ? 'me' : 'them'}">${d.data().text}</div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+            msgInp.focus();
+        }
+
+        async function send() {
+            const val = msgInp.value.trim();
+            if(!val || !currentChat) return;
+            const roomID = [myName, currentChat].sort().join("_");
+            await addDoc(collection(db, "rooms", roomID, "messages"), {
+                text: val, uid: auth.currentUser.uid, time: serverTimestamp()
+            });
+            msgInp.value = '';
+        }
+
+        document.getElementById('btnSend').onclick = send;
+        msgInp.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                send();
+            }
+        });
+
+
+        window.switchTab = (tab, el) => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            if(tab === 'chats') loadFriends(); else loadDiscover();
+        };
+    </script>
+</body>
+</html>
