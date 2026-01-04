@@ -1,0 +1,330 @@
+:root {
+    --blue: #0068ff;
+    --light: #f0f2f5;
+    --text: #1c1e21;
+    --gray: #65676b;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, system-ui, sans-serif;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    color: var(--text);
+}
+
+/* --- SIDEBAR (PC ONLY) --- */
+.sidebar {
+    width: 64px;
+    background: var(--blue);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.side-btn {
+    font-size: 24px;
+    margin-bottom: 25px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: 0.2s;
+}
+
+.side-btn:hover, .side-btn.active {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* --- LEFT COLUMN --- */
+.left-col {
+    width: 350px;
+    background: white;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--gray);
+    font-size: 14px;
+}
+
+.tab.active {
+    color: var(--blue);
+    border-bottom: 3px solid var(--blue);
+}
+
+.list-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Card & Avatars */
+.card {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #f2f2f2;
+    cursor: pointer;
+    position: relative;
+}
+
+.card:hover { background: #f8f9fa; }
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --- CHAT AREA --- */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #eef2f8;
+}
+
+.header {
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    font-weight: 600;
+}
+
+.btn-back {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 10px;
+    color: var(--blue);
+}
+
+#msgBox {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg {
+    max-width: 75%;
+    padding: 8px 12px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    font-size: 15px;
+}
+
+.msg.me { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 4px; }
+.msg.them { align-self: flex-start; background: white; border-bottom-left-radius: 4px; }
+
+.msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
+
+.footer {
+    padding: 10px 15px;
+    background: white;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #ddd;
+}
+
+#txtMsg { flex: 1; border: 1px solid #ddd; padding: 10px 15px; border-radius: 20px; outline: none; }
+#btnSend { background: var(--blue); color: white; border: none; padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+/* --- BOTTOM NAV (PC HIDE) --- */
+.bottom-nav {
+    display: none !important;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 768px) {
+    .sidebar, .tabs { display: none !important; }
+    .left-col { width: 100%; }
+    .btn-back { display: block; }
+
+    .bottom-nav {
+        display: flex !important;
+        position: fixed;
+        /* Tạo khoảng cách nhỏ với cạnh dưới để trông như đang nổi (tùy chọn) */
+        bottom: 15px; 
+        left: 15px;
+        right: 15px;
+        width: calc(100% - 30px); /* Thu hẹp lại một chút để nổi bật */
+        
+        height: 65px;
+        background: rgba(255, 255, 255, 0.95); /* Màu trắng hơi trong suốt */
+        backdrop-filter: blur(10px); /* Hiệu ứng kính mờ (Glassmorphism) */
+        
+        /* Hiệu ứng bo góc toàn bộ để tạo hình khối nổi */
+        border-radius: 20px; 
+        
+        /* Đổ bóng sâu để tạo độ nổi (Elevation) */
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+        padding-bottom: 0; /* Đã có bottom 15px nên không cần padding-bottom cho iPhone */
+    }
+
+    .nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--gray);
+        font-size: 11px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    .nav-item:active {
+        transform: scale(0.94); /* Thu nhỏ nhẹ khi chạm */
+    }
+
+    .nav-item.active { color: var(--blue); }
+    /* Tìm và cập nhật lại đoạn này trong file CSS của bạn */
+
+.nav-item .icon {
+    font-size: 22px;
+    margin-bottom: 2px;
+    width: 28px;      /* Cố định chiều rộng icon */
+    height: 28px;     /* Cố định chiều cao icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Cực kỳ quan trọng: để ảnh không tràn ra ngoài */
+    border-radius: 50%; /* Biến icon thành hình tròn */
+}
+
+.nav-item .icon img {
+    width: 100%;      /* Ảnh rộng bằng icon */
+    height: 100%;     /* Ảnh cao bằng icon */
+    object-fit: cover; /* Giúp ảnh không bị méo khi thu nhỏ */
+    border-radius: 50%;
+}
+
+    .list-container { padding-bottom: 80px; }
+
+    .chat-area {
+        position: fixed;
+        inset: 0;
+        transform: translateX(100%);
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000;
+    }
+
+    body.is-chatting .chat-area { transform: translateX(0); }
+}
+/* Style cho nút Kết bạn chung */
+.btn-add {
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 104, 255, 0.2);
+}
+
+.btn-add:hover {
+    background: #0056d2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 104, 255, 0.3);
+}
+
+/* Trạng thái đã gửi yêu cầu */
+.btn-sent {
+    background: #f0f2f5 !important;
+    color: #65676b !important;
+    cursor: default !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Nút Đồng ý trong phần Lời mời */
+.btn-accept {
+    background: #4caf50;
+    color: white;
+}
+/* Badge chung */
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #ff3b30; /* Màu đỏ của iOS */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid white; /* Tạo viền trắng để tách biệt với nền */
+    display: none; /* Mặc định ẩn, chỉ hiện khi có > 0 */
+}
+
+/* Tùy chỉnh riêng cho Tab trên PC */
+.tab .badge {
+    top: 5px;
+    right: 15px;
+}
+/* Badge thông báo tin nhắn trên Card */
+.msg-badge {
+    background-color: #ff3b30;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    margin-left: auto; /* Đẩy badge sang tận cùng bên phải card */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}

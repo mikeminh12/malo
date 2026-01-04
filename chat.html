@@ -2,224 +2,76 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Malo - Siêu ứng dụng nhắn tin</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <style>
-        :root { --blue: #0068ff; --light: #f0f2f5; --text: #1c1e21; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; height: 100vh; display: flex; background: var(--bg); overflow: hidden; color: var(--text); }
 
-        /* Sidebar - Chỉ hiện trên Desktop */
-        .sidebar { width: 64px; background: var(--blue); display: flex; flex-direction: column; align-items: center; padding: 20px 0; flex-shrink: 0; z-index: 100; }
-        .side-btn { font-size: 24px; cursor: pointer; margin-bottom: 25px; opacity: 0.9; transition: 0.2s; }
-        .side-btn:hover { transform: scale(1.1); opacity: 1; }
-
-        /* Cột trái (Danh sách) */
-        .left-col { width: 350px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 50; }
-        .tabs { display: flex; border-bottom: 1px solid #eee; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #65676b; position: relative; }
-        .tab.active { color: var(--blue); border-bottom: 3px solid var(--blue); }
-        .badge { background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 10px; right: 10px; }
-
-        .list-container { flex: 1; overflow-y: auto; }
-        .card { padding: 12px 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s; }
-        .card:hover { background: #f5f5f5; }
-        .card.active { background: #e5efff; }
-        .avatar { width: 48px; height: 48px; background: #0068ff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
-
-        /* Khung Chat */
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: #eef2f8; position: relative; min-width: 0; }
-        .header { height: 60px; background: white; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 15px; font-weight: 600; gap: 10px; flex-shrink: 0; }
-        .btn-back { display: none; font-size: 24px; cursor: pointer; color: var(--blue); padding: 5px; }
-
-        #msgBox { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 15px; word-wrap: break-word; line-height: 1.4; }
-        .msg.me { align-self: flex-end; background: var(--blue); color: white; border-bottom-right-radius: 2px; }
-        .msg.them { align-self: flex-start; background: white; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-        /* Input Bar */
-        .footer { padding: 10px 15px; background: white; border-top: 1px solid #ddd; display: flex; gap: 10px; align-items: center; z-index: 10; }
-        #txtMsg { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-size: 16px; background: #f0f2f5; }
-        #btnSend { background: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; height: 38px; }
-
-        /* Mobile CSS */
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .left-col { width: 100%; }
-            .chat-area { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; transition: 0.3s; z-index: 200; }
-            body.is-chatting .chat-area { left: 0; }
-            .btn-back { display: block; }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="side-btn" onclick="location.reload()">Ⓜ️</div>
-        <div class="side-btn" onclick="location.href='account.html'">👤</div>
+        <div class="side-btn" title="Trang chủ" onclick="location.reload()">Ⓜ️</div>
+        <div class="side-btn" title="Cá nhân" id="btnAccountPC">👤</div>
     </div>
-
-    <div class="left-col" id="leftCol">
-        <div class="tabs">
+    
+    <div class="left-col">
+        <div class="tabs" id="pcTabs">
             <div class="tab active" id="tabChats">Tin nhắn</div>
-            <div class="tab" id="tabDiscover">Khám phá <span id="reqBadge" class="badge" style="display:none">0</span></div>
+            <div class="tab" id="tabDiscover" style="position: relative;">
+    Khám phá
+    <span class="badge" id="badgeDiscoverPC">0</span>
+</div>
         </div>
+        
         <div class="list-container" id="mainList"></div>
+
+        <div id="accountView" style="display:none; flex-direction: column; align-items: center; padding: 30px 20px; background: #fff; height: 100%; overflow-y: auto;">
+            <div id="avatarBox" class="avatar" style="width:110px; height:110px; font-size:40px; cursor:pointer; border: 3px solid var(--blue); position:relative; overflow:hidden;">
+                </div>
+            <p style="color: #888; font-size: 12px; margin-top: 10px;">Chạm vào ảnh để đổi</p>
+            <input type="file" id="fileInput" style="display:none" accept="image/*">
+            
+            <div style="margin-top:20px; width: 100%; text-align: center;">
+                <p style="font-size: 18px; font-weight: bold;">@<span id="displayMyName">...</span></p>
+                <button onclick="handleLogout()" style="width:100%; padding:12px; background:#ff4757; color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold; cursor:pointer">Đăng xuất</button>
+            </div>
+        </div>
     </div>
 
+    <div class="bottom-nav">
+        <div class="nav-item active" id="navChat">
+            <span class="icon">💬</span>
+            <span class="label">Tin nhắn</span>
+        </div>
+        <div class="nav-item" id="navDiscover">
+    <div class="icon" style="position: relative;">
+        👥
+        <span class="badge" id="badgeDiscover">0</span>
+    </div>
+    <span class="label">Khám phá</span>
+</div>
+        <div class="nav-item" id="navAccount">
+            <span class="icon" id="navAvatar">👤</span>
+            <span class="label">Tài khoản</span>
+        </div>
+    </div>
+    
     <div class="chat-area" id="chatArea">
         <div class="header">
             <div class="btn-back" onclick="closeChat()">←</div>
-            <div id="chatTitle">Chọn một người bạn</div>
+            <div id="chatTitle" style="display: flex; align-items: center;">Chọn một người bạn</div>
         </div>
+
         <div id="msgBox"></div>
+
         <div class="footer">
-            <input type="text" id="txtMsg" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <input id="txtMsg" placeholder="Nhập tin nhắn..." autocomplete="off">
             <button id="btnSend">Gửi</button>
         </div>
     </div>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script type="module">
-        import { auth, db } from './firebase.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        let myName = "", currentChat = null, unsubMsg = null, currentTab = 'chats';
-        const msgInp = document.getElementById('txtMsg');
-        const showToast = (t) => Toastify({text: t, gravity: "top", position: "right", style: {background: "#0068ff"}}).showToast();
-
-        // 1. KHỞI TẠO & KIỂM TRA ĐĂNG NHẬP
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                myName = user.email.split('@')[0];
-                await setDoc(doc(db, "users", myName), { username: myName, email: user.email }, { merge: true });
-                loadFriends();
-                listenToRequestBadge();
-            } else { window.location.href = 'index.html'; }
-        });
-
-        // 2. TẢI DANH SÁCH BẠN BÈ (TAB CHAT)
-        function loadFriends() {
-            onSnapshot(collection(db, "users", myName, "friends"), (snap) => {
-                if (currentTab !== 'chats') return;
-                const list = document.getElementById('mainList');
-                list.innerHTML = snap.empty ? '<p style="text-align:center;color:#999;margin-top:30px">Chưa có bạn bè</p>' : '';
-                snap.forEach(d => {
-                    const div = document.createElement('div');
-                    div.className = `card ${currentChat === d.id ? 'active' : ''}`;
-                    div.innerHTML = `<div class="avatar">${d.id[0].toUpperCase()}</div><div><strong>${d.id}</strong></div>`;
-                    div.onclick = () => startChat(d.id, div);
-                    list.appendChild(div);
-                });
-            });
-        }
-
-        // 3. TẢI KHÁM PHÁ & LỜI MỜI
-        async function loadDiscover() {
-            const list = document.getElementById('mainList');
-            list.innerHTML = '<div style="padding:15px; font-weight:bold; color:var(--blue)">Lời mời kết bạn</div>';
-            
-            // Hiện lời mời đến
-            const reqSnap = await getDocs(collection(db, "users", myName, "requests"));
-            reqSnap.forEach(d => {
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `<span><strong>${d.id}</strong> muốn kết bạn</span> <button onclick="acceptFriend('${d.id}')" style="background:#4caf50;color:white;border:none;padding:5px 12px;border-radius:15px;cursor:pointer">Đồng ý</button>`;
-                list.appendChild(div);
-            });
-
-            // Hiện user khác
-            list.innerHTML += '<div style="padding:15px; font-weight:bold; color:var(--blue); border-top:8px solid #f0f2f5">Tìm bạn mới</div>';
-            const allSnap = await getDocs(collection(db, "users"));
-            allSnap.forEach(d => {
-                if(d.id !== myName) {
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `<div class="avatar" style="background:#ccc">${d.id[0].toUpperCase()}</div><div style="flex:1"><strong>${d.id}</strong></div> <button onclick="sendRequest('${d.id}')" style="background:var(--blue);color:white;border:none;padding:5px 12px;border-radius:15px;cursor:pointer">Kết bạn</button>`;
-                    list.appendChild(div);
-                }
-            });
-        }
-
-        // 4. LOGIC KẾT BẠN
-        window.sendRequest = async (to) => {
-            await setDoc(doc(db, "users", to, "requests", myName), { from: myName, time: serverTimestamp() });
-            showToast("Đã gửi lời mời!");
-        };
-
-        window.acceptFriend = async (who) => {
-            await setDoc(doc(db, "users", myName, "friends", who), { status: 'friend' });
-            await setDoc(doc(db, "users", who, "friends", myName), { status: 'friend' });
-            await deleteDoc(doc(db, "users", myName, "requests", who));
-            showToast("Đã trở thành bạn bè!");
-            loadDiscover();
-        };
-
-        function listenToRequestBadge() {
-            onSnapshot(collection(db, "users", myName, "requests"), snap => {
-                const b = document.getElementById('reqBadge');
-                if(!snap.empty) { b.innerText = snap.size; b.style.display = 'inline'; }
-                else { b.style.display = 'none'; }
-            });
-        }
-
-        // 5. CHAT LOGIC (MOBILE + DESKTOP)
-        function startChat(target, el) {
-            currentChat = target;
-            document.getElementById('chatTitle').innerText = target;
-            document.body.classList.add('is-chatting'); // Hiện chat trên Mobile
-            
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-            if(el) el.classList.add('active');
-
-            const roomID = [myName, target].sort().join("_");
-            if(unsubMsg) unsubMsg();
-            const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "asc"));
-            unsubMsg = onSnapshot(q, snap => {
-                const box = document.getElementById('msgBox');
-                box.innerHTML = '';
-                snap.forEach(d => {
-                    const isMe = d.data().uid === auth.currentUser.uid;
-                    box.innerHTML += `<div class="msg ${isMe ? 'me' : 'them'}">${d.data().text}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-            setTimeout(() => msgInp.focus(), 300);
-        }
-
-        window.closeChat = () => {
-            document.body.classList.remove('is-chatting');
-            currentChat = null;
-        };
-
-        async function send() {
-            const val = msgInp.value.trim();
-            if(!val || !currentChat) return;
-            const roomID = [myName, currentChat].sort().join("_");
-            await addDoc(collection(db, "rooms", roomID, "messages"), {
-                text: val, uid: auth.currentUser.uid, time: serverTimestamp()
-            });
-            msgInp.value = '';
-        }
-
-        document.getElementById('btnSend').onclick = send;
-        msgInp.onkeypress = (e) => e.key === 'Enter' && send();
-
-        // CHUYỂN TAB
-        document.getElementById('tabChats').onclick = () => {
-            currentTab = 'chats';
-            document.getElementById('tabChats').classList.add('active');
-            document.getElementById('tabDiscover').classList.remove('active');
-            loadFriends();
-        };
-        document.getElementById('tabDiscover').onclick = () => {
-            currentTab = 'discover';
-            document.getElementById('tabDiscover').classList.add('active');
-            document.getElementById('tabChats').classList.remove('active');
-            loadDiscover();
-        };
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
