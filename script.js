@@ -14,21 +14,17 @@ const toast = (t) => Toastify({ text: t, gravity: "top", position: "right", styl
 
 /* --- 1. KHỞI TẠO HỆ THỐNG --- */
 function listenNotifications() {
-    // 1. Lắng nghe yêu cầu kết bạn (Khám phá)
+    // Thông báo yêu cầu kết bạn (Tab Khám phá)
     onSnapshot(collection(db, "users", myName, "requests"), (snap) => {
-        const count = snap.size; // Lấy số lượng document trong collection requests
+        const count = snap.size;
         updateBadge("badgeDiscover", count);
         updateBadge("badgeDiscoverPC", count);
     });
-
-    // 2. Lắng nghe tin nhắn chưa đọc (Nếu bạn có trường 'unread' trong rooms)
-    // Phần này tùy thuộc vào cấu trúc database tin nhắn của bạn
 }
 
 function updateBadge(id, count) {
     const el = document.getElementById(id);
     if (!el) return;
-    
     if (count > 0) {
         el.innerText = count > 9 ? "9+" : count;
         el.style.display = "flex";
@@ -36,11 +32,11 @@ function updateBadge(id, count) {
         el.style.display = "none";
     }
 }
+
 onAuthStateChanged(auth, async user => {
     if (!user) return location.href = "index.html";
     myName = user.email.split("@")[0];
     
-    // Đảm bảo thông tin user luôn cập nhật
     await setDoc(doc(db, "users", myName), { username: myName }, { merge: true });
     
     loadMyAvatar();
@@ -56,7 +52,6 @@ window.switchView = (view) => {
 
     mainList.style.display = "none";
     accountView.style.display = "none";
-
     document.querySelectorAll('.tab, .nav-item, .side-btn').forEach(el => el.classList.remove('active'));
 
     if (view === 'account') {
@@ -78,7 +73,6 @@ window.switchView = (view) => {
     }
 };
 
-// Gán sự kiện Click cho Nav
 ['navChat', 'tabChats'].forEach(id => document.getElementById(id).onclick = () => switchView('chats'));
 ['navDiscover', 'tabDiscover'].forEach(id => document.getElementById(id).onclick = () => switchView('discover'));
 ['navAccount', 'btnAccountPC'].forEach(id => document.getElementById(id).onclick = () => switchView('account'));
@@ -90,12 +84,15 @@ async function loadMyAvatar() {
     const avatarBox = document.getElementById('avatarBox');
     const navAvatar = document.getElementById('navAvatar');
 
+    const imgTag = (src) => `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+
     if (url) {
-        const img = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-        avatarBox.innerHTML = img;
-        if (navAvatar) navAvatar.innerHTML = img;
+        if (avatarBox) avatarBox.innerHTML = imgTag(url);
+        if (navAvatar) navAvatar.innerHTML = imgTag(url);
     } else {
-        avatarBox.innerHTML = myName[0].toUpperCase();
+        const initial = myName[0].toUpperCase();
+        if (avatarBox) avatarBox.innerHTML = initial;
+        if (navAvatar) navAvatar.innerHTML = initial;
     }
 }
 
@@ -133,13 +130,11 @@ window.sendRequest = async (targetUser) => {
 
 window.acceptFriend = async (who) => {
     try {
-        // 1. Thêm vào danh sách bạn bè của cả hai
         await setDoc(doc(db, "users", myName, "friends", who), { time: serverTimestamp() });
         await setDoc(doc(db, "users", who, "friends", myName), { time: serverTimestamp() });
-        // 2. Xóa lời mời
         await deleteDoc(doc(db, "users", myName, "requests", who));
         toast("Đã trở thành bạn bè!");
-        loadDiscover(); // Refresh lại danh sách
+        loadDiscover();
     } catch (e) { toast("Lỗi xử lý"); }
 };
 
@@ -214,7 +209,7 @@ function loadFriends() {
             
             const div = document.createElement("div");
             div.className = "card";
-            div.style.alignItems = "center"; // Căn giữa theo chiều dọc
+            div.style.alignItems = "center";
             
             const avatar = userData?.photoURL 
                 ? `<img src="${userData.photoURL}">` 
@@ -230,16 +225,13 @@ function loadFriends() {
             
             div.onclick = () => startChat(friendId);
             mainList.appendChild(div);
-            
             listenLastMessage(friendId);
         }
     });
 }
 
-// Hàm lắng nghe tin nhắn cuối cùng và hiển thị Badge
 function listenLastMessage(friendId) {
     const roomID = [myName, friendId].sort().join("_");
-    // Chỉ lấy 1 tin nhắn mới nhất để kiểm tra trạng thái
     const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "desc"), limit(1));
 
     onSnapshot(q, (snap) => {
@@ -248,9 +240,10 @@ function listenLastMessage(friendId) {
 
         if (!snap.empty) {
             const data = snap.docs[0].data();
+            // Nếu bạn chưa có trong danh sách seenBy -> Tin chưa đọc
+            const isUnread = data.seenBy && !data.seenBy.includes(myName);
 
-            // Nếu người gửi không phải là tôi VÀ tôi đang không mở phòng chat này
-            if (data.uid !== auth.currentUser.uid && currentChat !== friendId) {
+            if (data.uid !== auth.currentUser.uid && isUnread) {
                 badgeCont.innerHTML = `<span class="msg-badge">1</span>`;
             } else {
                 badgeCont.innerHTML = "";
@@ -261,14 +254,29 @@ function listenLastMessage(friendId) {
     });
 }
 
-function startChat(target) {
+window.startChat = async (target) => {
     currentChat = target;
     document.getElementById("chatTitle").innerText = target;
     document.body.classList.add("is-chatting");
+    
     const badgeCont = document.getElementById(`badge-container-${target}`);
     if (badgeCont) badgeCont.innerHTML = "";
 
     const roomID = [myName, target].sort().join("_");
+
+    // Đánh dấu tin nhắn cuối là đã đọc trong DB
+    const qLast = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "desc"), limit(1));
+    const snapLast = await getDocs(qLast);
+    if (!snapLast.empty) {
+        const lastDoc = snapLast.docs[0];
+        const data = lastDoc.data();
+        if (!data.seenBy?.includes(myName)) {
+            await updateDoc(doc(db, "rooms", roomID, "messages", lastDoc.id), {
+                seenBy: [...(data.seenBy || []), myName]
+            });
+        }
+    }
+
     if (unsubMsg) unsubMsg();
 
     const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time"));
@@ -285,7 +293,7 @@ function startChat(target) {
         });
         box.scrollTop = box.scrollHeight;
     });
-}
+};
 
 window.closeChat = () => {
     document.body.classList.remove("is-chatting");
@@ -299,7 +307,8 @@ document.getElementById("btnSend").onclick = async () => {
     await addDoc(collection(db, "rooms", roomID, "messages"), {
         text: msg,
         uid: auth.currentUser.uid,
-        time: serverTimestamp()
+        time: serverTimestamp(),
+        seenBy: [myName] // Người gửi mặc định đã xem
     });
     document.getElementById("txtMsg").value = "";
 };
