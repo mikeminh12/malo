@@ -2,7 +2,7 @@ import { auth, db } from './firebase.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
     collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
-    doc, setDoc, getDocs, deleteDoc, getDoc, updateDoc, limit
+    doc, setDoc, getDocs, deleteDoc, getDoc, updateDoc, limit, where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let myName = "";
@@ -14,17 +14,21 @@ const toast = (t) => Toastify({ text: t, gravity: "top", position: "right", styl
 
 /* --- 1. KHỞI TẠO HỆ THỐNG --- */
 function listenNotifications() {
-    // Thông báo yêu cầu kết bạn (Tab Khám phá)
+    // 1. Lắng nghe yêu cầu kết bạn (Khám phá)
     onSnapshot(collection(db, "users", myName, "requests"), (snap) => {
-        const count = snap.size;
+        const count = snap.size; // Lấy số lượng document trong collection requests
         updateBadge("badgeDiscover", count);
         updateBadge("badgeDiscoverPC", count);
     });
+
+    // 2. Lắng nghe tin nhắn chưa đọc (Nếu bạn có trường 'unread' trong rooms)
+    // Phần này tùy thuộc vào cấu trúc database tin nhắn của bạn
 }
 
 function updateBadge(id, count) {
     const el = document.getElementById(id);
     if (!el) return;
+    
     if (count > 0) {
         el.innerText = count > 9 ? "9+" : count;
         el.style.display = "flex";
@@ -32,11 +36,11 @@ function updateBadge(id, count) {
         el.style.display = "none";
     }
 }
-
 onAuthStateChanged(auth, async user => {
     if (!user) return location.href = "index.html";
     myName = user.email.split("@")[0];
     
+    // Đảm bảo thông tin user luôn cập nhật
     await setDoc(doc(db, "users", myName), { username: myName }, { merge: true });
     
     loadMyAvatar();
@@ -52,6 +56,7 @@ window.switchView = (view) => {
 
     mainList.style.display = "none";
     accountView.style.display = "none";
+
     document.querySelectorAll('.tab, .nav-item, .side-btn').forEach(el => el.classList.remove('active'));
 
     if (view === 'account') {
@@ -73,6 +78,7 @@ window.switchView = (view) => {
     }
 };
 
+// Gán sự kiện Click cho Nav
 ['navChat', 'tabChats'].forEach(id => document.getElementById(id).onclick = () => switchView('chats'));
 ['navDiscover', 'tabDiscover'].forEach(id => document.getElementById(id).onclick = () => switchView('discover'));
 ['navAccount', 'btnAccountPC'].forEach(id => document.getElementById(id).onclick = () => switchView('account'));
@@ -84,15 +90,12 @@ async function loadMyAvatar() {
     const avatarBox = document.getElementById('avatarBox');
     const navAvatar = document.getElementById('navAvatar');
 
-    const imgTag = (src) => `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-
     if (url) {
-        if (avatarBox) avatarBox.innerHTML = imgTag(url);
-        if (navAvatar) navAvatar.innerHTML = imgTag(url);
+        const img = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        avatarBox.innerHTML = img;
+        if (navAvatar) navAvatar.innerHTML = img;
     } else {
-        const initial = myName[0].toUpperCase();
-        if (avatarBox) avatarBox.innerHTML = initial;
-        if (navAvatar) navAvatar.innerHTML = initial;
+        avatarBox.innerHTML = myName[0].toUpperCase();
     }
 }
 
@@ -130,11 +133,13 @@ window.sendRequest = async (targetUser) => {
 
 window.acceptFriend = async (who) => {
     try {
+        // 1. Thêm vào danh sách bạn bè của cả hai
         await setDoc(doc(db, "users", myName, "friends", who), { time: serverTimestamp() });
         await setDoc(doc(db, "users", who, "friends", myName), { time: serverTimestamp() });
+        // 2. Xóa lời mời
         await deleteDoc(doc(db, "users", myName, "requests", who));
         toast("Đã trở thành bạn bè!");
-        loadDiscover();
+        loadDiscover(); // Refresh lại danh sách
     } catch (e) { toast("Lỗi xử lý"); }
 };
 
@@ -209,7 +214,7 @@ function loadFriends() {
             
             const div = document.createElement("div");
             div.className = "card";
-            div.style.alignItems = "center";
+            div.style.alignItems = "center"; // Căn giữa theo chiều dọc
             
             const avatar = userData?.photoURL 
                 ? `<img src="${userData.photoURL}">` 
@@ -225,75 +230,119 @@ function loadFriends() {
             
             div.onclick = () => startChat(friendId);
             mainList.appendChild(div);
+            
             listenLastMessage(friendId);
         }
     });
 }
 
+// Hàm lắng nghe tin nhắn cuối cùng và hiển thị Badge
 function listenLastMessage(friendId) {
     const roomID = [myName, friendId].sort().join("_");
-    const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "desc"), limit(1));
+
+    const q = query(
+        collection(db, "rooms", roomID, "messages"),
+        orderBy("time", "desc")
+    );
 
     onSnapshot(q, (snap) => {
         const badgeCont = document.getElementById(`badge-container-${friendId}`);
         if (!badgeCont) return;
 
-        if (!snap.empty) {
-            const data = snap.docs[0].data();
-            // Nếu bạn chưa có trong danh sách seenBy -> Tin chưa đọc
-            const isUnread = data.seenBy && !data.seenBy.includes(myName);
+        let unreadCount = 0;
 
-            if (data.uid !== auth.currentUser.uid && isUnread) {
-                badgeCont.innerHTML = `<span class="msg-badge">1</span>`;
-            } else {
-                badgeCont.innerHTML = "";
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (
+                data.uid !== auth.currentUser.uid &&
+                !data.seenBy?.includes(myName)
+            ) {
+                unreadCount++;
             }
+        });
+
+        if (unreadCount > 0) {
+            badgeCont.innerHTML =
+                `<span class="msg-badge">${unreadCount > 9 ? '9+' : unreadCount}</span>`;
         } else {
             badgeCont.innerHTML = "";
         }
     });
 }
 
-window.startChat = async (target) => {
+
+async function startChat(target) {
     currentChat = target;
+
     document.getElementById("chatTitle").innerText = target;
     document.body.classList.add("is-chatting");
-    
-    const badgeCont = document.getElementById(`badge-container-${target}`);
-    if (badgeCont) badgeCont.innerHTML = "";
+
+    // clear badge UI
+    const badge = document.getElementById(`badge-container-${target}`);
+    if (badge) badge.innerHTML = "";
 
     const roomID = [myName, target].sort().join("_");
 
-    // Đánh dấu tin nhắn cuối là đã đọc trong DB
-    const qLast = query(collection(db, "rooms", roomID, "messages"), orderBy("time", "desc"), limit(1));
-    const snapLast = await getDocs(qLast);
-    if (!snapLast.empty) {
-        const lastDoc = snapLast.docs[0];
-        const data = lastDoc.data();
+    // stop listener cũ
+    if (typeof unsubMsg === "function") {
+        unsubMsg();
+        unsubMsg = null;
+    }
+
+    /* =========================
+       MARK ALL AS READ (REAL FIX)
+    ========================= */
+    const qUnread = query(
+        collection(db, "rooms", roomID, "messages"),
+        where("uid", "!=", auth.currentUser.uid)
+    );
+
+    const snap = await getDocs(qUnread);
+    for (const docSnap of snap.docs) {
+        const data = docSnap.data();
         if (!data.seenBy?.includes(myName)) {
-            await updateDoc(doc(db, "rooms", roomID, "messages", lastDoc.id), {
+            await updateDoc(docSnap.ref, {
                 seenBy: [...(data.seenBy || []), myName]
             });
         }
     }
 
-    if (unsubMsg) unsubMsg();
+    /* =========================
+       LISTEN MESSAGE
+    ========================= */
+    const q = query(
+        collection(db, "rooms", roomID, "messages"),
+        orderBy("time")
+    );
 
-    const q = query(collection(db, "rooms", roomID, "messages"), orderBy("time"));
     unsubMsg = onSnapshot(q, snap => {
         const box = document.getElementById("msgBox");
         box.innerHTML = "";
+
         snap.forEach(d => {
             const data = d.data();
             const isMe = data.uid === auth.currentUser.uid;
+
+            const time = data.time
+                ? new Date(data.time.toDate()).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })
+                : "";
+
             const div = document.createElement("div");
-            div.className = `msg ${isMe ? 'me' : 'them'}`;
-            div.innerHTML = `<div>${data.text}</div><div class="msg-time">${data.time ? new Date(data.time.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</div>`;
+            div.className = `msg ${isMe ? "me" : "them"}`;
+            div.innerHTML = `
+                <div>${data.text}</div>
+                <div class="msg-time">${time}</div>
+            `;
             box.appendChild(div);
         });
+
         box.scrollTop = box.scrollHeight;
     });
-};
+}
+
 
 window.closeChat = () => {
     document.body.classList.remove("is-chatting");
@@ -307,8 +356,7 @@ document.getElementById("btnSend").onclick = async () => {
     await addDoc(collection(db, "rooms", roomID, "messages"), {
         text: msg,
         uid: auth.currentUser.uid,
-        time: serverTimestamp(),
-        seenBy: [myName] // Người gửi mặc định đã xem
+        time: serverTimestamp()
     });
     document.getElementById("txtMsg").value = "";
 };
