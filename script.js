@@ -269,10 +269,20 @@ function listenLastMessage(friendId) {
         }
     });
 }
+// Bắt nút Back trên mobile
+window.addEventListener("popstate", () => {
+    if (document.body.classList.contains("is-chatting")) {
+        closeChat();
+    }
+});
+
 
 
 async function startChat(target) {
     currentChat = target;
+
+    // Push history để back hoạt động
+    history.pushState({ chat: true }, "");
 
     document.getElementById("chatTitle").innerText = target;
     document.body.classList.add("is-chatting");
@@ -283,15 +293,12 @@ async function startChat(target) {
 
     const roomID = [myName, target].sort().join("_");
 
-    // stop listener cũ
     if (typeof unsubMsg === "function") {
         unsubMsg();
         unsubMsg = null;
     }
 
-    /* =========================
-       MARK ALL AS READ (REAL FIX)
-    ========================= */
+    // MARK ALL AS READ
     const qUnread = query(
         collection(db, "rooms", roomID, "messages"),
         where("uid", "!=", auth.currentUser.uid)
@@ -307,9 +314,6 @@ async function startChat(target) {
         }
     }
 
-    /* =========================
-       LISTEN MESSAGE
-    ========================= */
     const q = query(
         collection(db, "rooms", roomID, "messages"),
         orderBy("time")
@@ -344,10 +348,17 @@ async function startChat(target) {
 }
 
 
+
 window.closeChat = () => {
     document.body.classList.remove("is-chatting");
     currentChat = null;
+
+    // Quay về state trước (tránh bị kẹt history)
+    if (history.state?.chat) {
+        history.back();
+    }
 };
+
 
 document.getElementById("btnSend").onclick = async () => {
     const msg = document.getElementById("txtMsg").value;
