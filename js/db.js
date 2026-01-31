@@ -163,6 +163,13 @@ export const startChat = (myName, target) => {
     unsubMsg = onSnapshot(q, async (snap) => {
         const box = $("msgBox");
         if (!box) return;
+
+        // Smart Scroll Logic:
+        // 1. Check if we are currently at the bottom (before wiping content)
+        // 2. OR if the box is empty (first load)
+        const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 150;
+        const isFirstLoad = box.childElementCount === 0;
+
         box.innerHTML = "";
 
         const docs = snap.docs.slice(-50);
@@ -272,7 +279,13 @@ export const startChat = (myName, target) => {
             box.appendChild(row);
         }
 
-        scrollToBottom("msgBox");
+        // Only scroll if we were at the bottom or it's the first load
+        // Also, if a NEW message comes from Me, we should probably scroll? 
+        // The Firestore snapshot doesn't easily tell us "which one is new" without diffing.
+        // But usually checking bottom is enough.
+        if (wasAtBottom || isFirstLoad) {
+            scrollToBottom("msgBox");
+        }
     });
 };
 

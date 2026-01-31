@@ -1,56 +1,72 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en" class="light">
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Malo Messenger</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
-    <script id="tailwind-config">
+    <script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#3b82f6",
+                        primary: "#3b82f6",
                         "bg-surface": "#f9fafb",
                         "bg-chat": "#ffffff",
                     },
-                    fontFamily: { "sans": ["Plus Jakarta Sans", "sans-serif"] },
-                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                    fontFamily: {
+                        sans: ["Plus Jakarta Sans", "sans-serif"],
+                    },
                 },
             },
-        }
+        };
     </script>
+
     <style type="text/tailwindcss">
-        @layer base { body { @apply font-sans text-slate-700 antialiased; } }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .msg { @apply p-3.5 rounded-2xl max-w-[75%] mb-3 font-medium text-[15px] shadow-sm leading-relaxed relative; }
-        .msg.me { @apply bg-gradient-to-br from-blue-500 to-blue-600 text-white self-end rounded-br-none; }
-        .msg.them { @apply bg-white text-slate-700 self-start rounded-bl-none border border-slate-100; }
-        .card { @apply flex items-center justify-between bg-white p-4 rounded-2xl mb-3 hover:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-100 transition-all shadow-sm; }
-        .card b { @apply text-slate-800 font-bold text-[15px]; }
-        .card button { @apply bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors; }
+        @layer base {
+            body {
+                @apply font-sans antialiased text-slate-700;
+            }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .msg {
+            @apply p-3.5 rounded-2xl max-w-[75%] mb-3 text-[15px] font-medium leading-relaxed shadow-sm;
+        }
+        .msg.me {
+            @apply bg-gradient-to-br from-blue-500 to-blue-600 text-white self-end rounded-br-none;
+        }
+        .msg.them {
+            @apply bg-white text-slate-700 self-start rounded-bl-none border border-slate-100;
+        }
     </style>
 </head>
 
-<body class="bg-bg-surface overflow-hidden">
-    <div class="flex h-screen w-full overflow-hidden bg-bg-surface">
+<body class="h-[100dvh] overflow-hidden bg-bg-surface">
+    <div class="flex h-full w-full overflow-hidden">
 
-        <!-- Sidebar (Desktop Only) -->
-        <aside class="hidden md:flex w-20 lg:w-24 flex-col bg-bg-surface border-r border-slate-100 flex-shrink-0">
-            <div class="flex flex-col h-full justify-between items-center py-8">
+        <!-- SIDEBAR -->
+        <aside class="hidden md:flex w-20 lg:w-24 flex-col bg-bg-surface border-r border-slate-100">
+            <div class="flex flex-col items-center justify-between h-full py-8">
                 <div class="flex flex-col items-center gap-10">
                     <div
-                        class="bg-gradient-to-br from-blue-600 to-blue-500 size-12 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        class="size-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-lg">
                         <span class="material-symbols-outlined">chat_bubble</span>
                     </div>
                     <nav class="flex flex-col gap-6 w-full px-2">
@@ -64,109 +80,66 @@
                             class="group flex justify-center p-3 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-all">
                             <span class="material-symbols-outlined text-[26px]">explore</span>
                         </div>
-
                     </nav>
                 </div>
-                <div id="navAvatar"
-                    class="size-10 rounded-2xl overflow-hidden ring-2 ring-white shadow-sm bg-slate-200 flex items-center justify-center font-bold text-slate-500 cursor-pointer">
+                <div id="navAvatar" class="size-10 rounded-2xl bg-slate-200 flex items-center justify-center font-bold">
                     ?
                 </div>
             </div>
         </aside>
 
-        <!-- Main List Area -->
-        <main id="mainListArea" class="w-full md:w-80 lg:w-[420px] flex flex-col bg-bg-surface flex-shrink-0">
-            <div class="px-6 pt-6 md:pt-10 pb-4 flex flex-col gap-6">
-                <!-- Mobile Header -->
-                <div class="flex justify-between items-center md:block">
-                    <h2 id="listTitle" class="text-2xl font-extrabold text-slate-800 tracking-tight">Malo Chat</h2>
-                    <!-- Mobile Avatar -->
-                    <div id="mobileAvatar"
-                        class="md:hidden size-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 overflow-hidden cursor-pointer"
-                        onclick="window.location.href='account.html'">
-                        ?
-                    </div>
-                </div>
-
-                <div class="flex gap-6 border-b border-slate-100">
-                    <button id="tabChats"
-                        class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-colors">Bạn
-                        bè</button>
-                    <button id="tabDiscover"
-                        class="pb-3 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors">Khám
-                        phá</button>
-                </div>
+        <!-- MAIN LIST -->
+        <main class="w-full md:w-80 lg:w-[420px] flex flex-col bg-bg-surface border-r border-slate-100">
+            <div class="px-6 pt-6 pb-4">
+                <h2 class="text-2xl font-extrabold text-slate-800">Malo Chat</h2>
             </div>
 
-            <div id="mainList" class="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-6 pb-8">
-            </div>
+            <div id="mainList" class="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar"></div>
         </main>
 
-        <section id="accountView" class="hidden flex-1 flex-col items-center justify-center bg-white">
-            <!-- Account content same as before -->
-            <!-- ... -->
-        </section>
-
-        <!-- Chat Section (Mobile Slide-over) -->
+        <!-- CHAT SECTION -->
+        <!-- ❗ FIX CHÍNH Ở ĐÂY -->
         <section id="chatSection"
-            class="fixed inset-0 z-50 md:static md:block bg-bg-chat md:flex-1 flex flex-col md:rounded-l-[3rem] shadow-2xl border-l border-slate-50 transition-transform duration-300 translate-x-full md:translate-x-0 w-full">
-            <header
-                class="h-16 md:h-24 flex items-center justify-between px-4 md:px-10 shrink-0 border-b border-slate-50 bg-white/80 backdrop-blur-md md:bg-transparent">
-                <div class="flex items-center gap-3">
-                    <!-- Mobile Back Button -->
-                    <button id="btnBack" class="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <h3 id="chatTitle" class="text-slate-900 text-lg font-bold">Chọn một cuộc trò chuyện</h3>
-                </div>
+            class="fixed inset-0 md:static flex flex-col bg-bg-chat md:flex-1 h-full transition-transform md:translate-x-0 translate-x-full">
+
+            <!-- HEADER -->
+            <header class="shrink-0 h-16 md:h-24 flex items-center px-4 md:px-10 border-b border-slate-100 bg-white">
+                <h3 id="chatTitle" class="text-lg font-bold">Chọn cuộc trò chuyện</h3>
             </header>
 
-            <!-- Pinned Message -->
-            <div id="pinnedMsg"
-                class="hidden px-6 py-2 bg-yellow-50 border-b border-yellow-100 flex items-center gap-3 cursor-pointer hover:bg-yellow-100 transition-colors z-20">
-                <span class="material-symbols-outlined text-yellow-600 text-sm">keep</span>
-                <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-yellow-700">Pinned Message</p>
-                    <p id="pinnedText" class="text-xs text-yellow-800 truncate">...</p>
-                </div>
+            <!-- PINNED -->
+            <div id="pinnedMsg" class="hidden shrink-0 px-6 py-2 bg-yellow-50 border-b border-yellow-100">
+                <p class="text-xs font-bold text-yellow-700">Pinned message</p>
             </div>
 
-            <div id="msgBox"
-                class="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 flex flex-col custom-scrollbar relative">
+            <!-- MESSAGES -->
+            <!-- ❗ flex-1 + pb-28 để không bị footer đè -->
+            <div id="msgBox" class="flex-1 overflow-y-auto px-4 md:px-10 py-6 pb-28 flex flex-col custom-scrollbar">
             </div>
 
-            <div id="replyPreview" class="hidden px-4 md:px-10 pt-2 pb-1 flex items-center gap-2">
-                <div class="flex-1 bg-slate-100 border-l-4 border-blue-500 rounded p-2 text-xs relative">
-                    <p id="replyToName" class="font-bold text-blue-600 mb-0.5">Replying to...</p>
-                    <p id="replyToText" class="text-slate-600 truncate">Message text...</p>
-                    <button id="cancelReply" class="absolute top-1 right-1 text-slate-400 hover:text-red-500">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                    </button>
-                </div>
-            </div>
-
-            <div id="typingIndicator"
-                class="px-10 pb-2 text-xs text-slate-400 italic hidden translate-y-2 transition-all">
+            <!-- TYPING -->
+            <div id="typingIndicator" class="shrink-0 px-10 pb-2 text-xs text-slate-400 italic hidden">
                 User is typing...
             </div>
 
-            <footer class="px-4 md:px-10 py-4 md:py-6 bg-white shrink-0 pb-safe">
-                <div
-                    class="flex items-center gap-2 md:gap-4 bg-slate-50 p-2 rounded-[2rem] border border-slate-100 relative">
-                    <button id="btnEmoji"
-                        class="size-10 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full flex items-center justify-center transition-all">
+            <!-- FOOTER / INPUT -->
+            <!-- ❗ shrink-0 để không ảnh hưởng chiều cao -->
+            <footer class="shrink-0 px-4 md:px-10 py-4 bg-white border-t border-slate-100">
+                <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-full border">
+                    <button class="size-10 flex items-center justify-center text-slate-400 hover:text-blue-500">
                         <span class="material-symbols-outlined">mood</span>
                     </button>
-                    <input id="txtMsg" class="flex-1 bg-transparent border-none focus:ring-0 px-2 py-2 font-medium"
-                        placeholder="Nhập tin nhắn..." type="text" autocomplete="off" />
+
+                    <input id="txtMsg" type="text" placeholder="Nhập tin nhắn..."
+                        class="flex-1 bg-transparent border-none focus:ring-0 px-2 py-2" />
+
                     <button id="btnSend"
-                        class="size-10 md:size-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
+                        class="size-10 bg-primary text-white rounded-full flex items-center justify-center shadow hover:scale-105 active:scale-95 transition">
                         <span class="material-symbols-outlined">send</span>
                     </button>
                 </div>
             </footer>
         </section>
-
     </div>
 
     <script type="module" src="js/app.js"></script>

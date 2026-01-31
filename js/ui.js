@@ -156,9 +156,27 @@ export const notify = (title, body) => {
     }
 };
 
-export const scrollToBottom = (id) => {
+export const scrollToBottom = (id, smooth = true) => {
     const el = $(id);
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+
+    // We can just scroll. The 'smart' logic will be handled by the caller (db.js)
+    // determining WHETHER to call this. 
+    // But we'll add a small timeout to ensure DOM render completion (especially for images)
+
+    setTimeout(() => {
+        el.scrollTo({
+            top: el.scrollHeight,
+            behavior: smooth ? "smooth" : "auto"
+        });
+    }, 50);
+};
+
+export const isAtBottom = (id) => {
+    const el = $(id);
+    if (!el) return false;
+    // Tolerance of 100px
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 150;
 };
 
 export const renderPinnedMessage = (msgData) => {
