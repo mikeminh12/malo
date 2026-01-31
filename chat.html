@@ -1,77 +1,175 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html class="light" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Malo - Siêu ứng dụng nhắn tin</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Malo Messenger</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="stylesheet" href="style.css">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3b82f6",
+                        "bg-surface": "#f9fafb",
+                        "bg-chat": "#ffffff",
+                    },
+                    fontFamily: { "sans": ["Plus Jakarta Sans", "sans-serif"] },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base { body { @apply font-sans text-slate-700 antialiased; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .msg { @apply p-3.5 rounded-2xl max-w-[75%] mb-3 font-medium text-[15px] shadow-sm leading-relaxed relative; }
+        .msg.me { @apply bg-gradient-to-br from-blue-500 to-blue-600 text-white self-end rounded-br-none; }
+        .msg.them { @apply bg-white text-slate-700 self-start rounded-bl-none border border-slate-100; }
+        .card { @apply flex items-center justify-between bg-white p-4 rounded-2xl mb-3 hover:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-100 transition-all shadow-sm; }
+        .card b { @apply text-slate-800 font-bold text-[15px]; }
+        .card button { @apply bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200 transition-colors; }
+    </style>
 </head>
-<body>
 
-    <div class="sidebar">
-        <div class="side-btn" title="Trang chủ" onclick="location.reload()">Ⓜ️</div>
-        <div class="side-btn" title="Cá nhân" id="btnAccountPC">👤</div>
-    </div>
-    
-    <div class="left-col">
-        <div class="tabs" id="pcTabs">
-            <div class="tab active" id="tabChats">Tin nhắn</div>
-            <div class="tab" id="tabDiscover" style="position: relative;">
-    Khám phá
-    <span class="badge" id="badgeDiscoverPC">0</span>
-</div>
-        </div>
-        
-        <div class="list-container" id="mainList"></div>
+<body class="bg-bg-surface overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden bg-bg-surface">
 
-        <div id="accountView" style="display:none; flex-direction: column; align-items: center; padding: 30px 20px; background: #fff; height: 100%; overflow-y: auto;">
-            <div id="avatarBox" class="avatar" style="width:110px; height:110px; font-size:40px; cursor:pointer; border: 3px solid var(--blue); position:relative; overflow:hidden;">
+        <!-- Sidebar (Desktop Only) -->
+        <aside class="hidden md:flex w-20 lg:w-24 flex-col bg-bg-surface border-r border-slate-100 flex-shrink-0">
+            <div class="flex flex-col h-full justify-between items-center py-8">
+                <div class="flex flex-col items-center gap-10">
+                    <div
+                        class="bg-gradient-to-br from-blue-600 to-blue-500 size-12 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        <span class="material-symbols-outlined">chat_bubble</span>
+                    </div>
+                    <nav class="flex flex-col gap-6 w-full px-2">
+                        <div id="navChat"
+                            class="group relative flex justify-center p-3 rounded-xl bg-blue-50 text-blue-600 cursor-pointer transition-all">
+                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full">
+                            </div>
+                            <span class="material-symbols-outlined text-[26px]">chat</span>
+                        </div>
+                        <div id="navDiscover"
+                            class="group flex justify-center p-3 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-all">
+                            <span class="material-symbols-outlined text-[26px]">explore</span>
+                        </div>
+
+                    </nav>
                 </div>
-            <p style="color: #888; font-size: 12px; margin-top: 10px;">Chạm vào ảnh để đổi</p>
-            <input type="file" id="fileInput" style="display:none" accept="image/*">
-            
-            <div style="margin-top:20px; width: 100%; text-align: center;">
-                <p style="font-size: 18px; font-weight: bold;">@<span id="displayMyName">...</span></p>
-                <button onclick="handleLogout()" style="width:100%; padding:12px; background:#ff4757; color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold; cursor:pointer">Đăng xuất</button>
+                <div id="navAvatar"
+                    class="size-10 rounded-2xl overflow-hidden ring-2 ring-white shadow-sm bg-slate-200 flex items-center justify-center font-bold text-slate-500 cursor-pointer">
+                    ?
+                </div>
             </div>
-        </div>
+        </aside>
+
+        <!-- Main List Area -->
+        <main id="mainListArea" class="w-full md:w-80 lg:w-[420px] flex flex-col bg-bg-surface flex-shrink-0">
+            <div class="px-6 pt-6 md:pt-10 pb-4 flex flex-col gap-6">
+                <!-- Mobile Header -->
+                <div class="flex justify-between items-center md:block">
+                    <h2 id="listTitle" class="text-2xl font-extrabold text-slate-800 tracking-tight">Malo Chat</h2>
+                    <!-- Mobile Avatar -->
+                    <div id="mobileAvatar"
+                        class="md:hidden size-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 overflow-hidden cursor-pointer"
+                        onclick="window.location.href='account.html'">
+                        ?
+                    </div>
+                </div>
+
+                <div class="flex gap-6 border-b border-slate-100">
+                    <button id="tabChats"
+                        class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-colors">Bạn
+                        bè</button>
+                    <button id="tabDiscover"
+                        class="pb-3 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors">Khám
+                        phá</button>
+                </div>
+            </div>
+
+            <div id="mainList" class="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-6 pb-8">
+            </div>
+        </main>
+
+        <section id="accountView" class="hidden flex-1 flex-col items-center justify-center bg-white">
+            <!-- Account content same as before -->
+            <!-- ... -->
+        </section>
+
+        <!-- Chat Section (Mobile Slide-over) -->
+        <section id="chatSection"
+            class="fixed inset-0 z-50 md:static md:block bg-bg-chat md:flex-1 flex flex-col md:rounded-l-[3rem] shadow-2xl border-l border-slate-50 transition-transform duration-300 translate-x-full md:translate-x-0 w-full">
+            <header
+                class="h-16 md:h-24 flex items-center justify-between px-4 md:px-10 shrink-0 border-b border-slate-50 bg-white/80 backdrop-blur-md md:bg-transparent">
+                <div class="flex items-center gap-3">
+                    <!-- Mobile Back Button -->
+                    <button id="btnBack" class="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-full">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h3 id="chatTitle" class="text-slate-900 text-lg font-bold">Chọn một cuộc trò chuyện</h3>
+                </div>
+            </header>
+
+            <!-- Pinned Message -->
+            <div id="pinnedMsg"
+                class="hidden px-6 py-2 bg-yellow-50 border-b border-yellow-100 flex items-center gap-3 cursor-pointer hover:bg-yellow-100 transition-colors z-20">
+                <span class="material-symbols-outlined text-yellow-600 text-sm">keep</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-yellow-700">Pinned Message</p>
+                    <p id="pinnedText" class="text-xs text-yellow-800 truncate">...</p>
+                </div>
+            </div>
+
+            <div id="msgBox"
+                class="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 flex flex-col custom-scrollbar relative">
+            </div>
+
+            <div id="replyPreview" class="hidden px-4 md:px-10 pt-2 pb-1 flex items-center gap-2">
+                <div class="flex-1 bg-slate-100 border-l-4 border-blue-500 rounded p-2 text-xs relative">
+                    <p id="replyToName" class="font-bold text-blue-600 mb-0.5">Replying to...</p>
+                    <p id="replyToText" class="text-slate-600 truncate">Message text...</p>
+                    <button id="cancelReply" class="absolute top-1 right-1 text-slate-400 hover:text-red-500">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="typingIndicator"
+                class="px-10 pb-2 text-xs text-slate-400 italic hidden translate-y-2 transition-all">
+                User is typing...
+            </div>
+
+            <footer class="px-4 md:px-10 py-4 md:py-6 bg-white shrink-0 pb-safe">
+                <div
+                    class="flex items-center gap-2 md:gap-4 bg-slate-50 p-2 rounded-[2rem] border border-slate-100 relative">
+                    <button id="btnEmoji"
+                        class="size-10 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-full flex items-center justify-center transition-all">
+                        <span class="material-symbols-outlined">mood</span>
+                    </button>
+                    <input id="txtMsg" class="flex-1 bg-transparent border-none focus:ring-0 px-2 py-2 font-medium"
+                        placeholder="Nhập tin nhắn..." type="text" autocomplete="off" />
+                    <button id="btnSend"
+                        class="size-10 md:size-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </footer>
+        </section>
+
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" id="navChat">
-            <span class="icon">💬</span>
-            <span class="label">Tin nhắn</span>
-        </div>
-        <div class="nav-item" id="navDiscover">
-    <div class="icon" style="position: relative;">
-        👥
-        <span class="badge" id="badgeDiscover">0</span>
-    </div>
-    <span class="label">Khám phá</span>
-</div>
-        <div class="nav-item" id="navAccount">
-            <span class="icon" id="navAvatar">👤</span>
-            <span class="label">Tài khoản</span>
-        </div>
-    </div>
-    
-    <div class="chat-area" id="chatArea">
-        <div class="header">
-            <div class="btn-back" onclick="closeChat()">←</div>
-            <div id="chatTitle" style="display: flex; align-items: center;">Chọn một người bạn</div>
-        </div>
-
-        <div id="msgBox"></div>
-
-        <div class="footer">
-            <input id="txtMsg" placeholder="Nhập tin nhắn..." autocomplete="off">
-            <button id="btnSend">Gửi</button>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script type="module" src="script.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
+
 </html>

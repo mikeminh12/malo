@@ -1,66 +1,145 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malo - Đăng nhập</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Malo | Đăng nhập</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e3f2fd; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
-        h1 { color: #0068ff; font-size: 2.8rem; margin-bottom: 10px; font-weight: 800; letter-spacing: -2px; }
-        p { color: #666; margin-bottom: 30px; font-size: 0.9rem; }
-        
-        .input-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 5px; margin-left: 5px; }
-        input { width: 100%; padding: 12px 15px; border: 1px solid #c0d8ff; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; font-size: 1rem; }
-        input:focus { border-color: #0068ff; box-shadow: 0 0 8px rgba(0,104,255,0.15); }
-        
-        button { width: 100%; padding: 13px; background: #0068ff; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 1rem; margin-top: 15px; transition: 0.3s; }
-        button:hover { background: #0056d2; transform: translateY(-1px); }
-        button:active { transform: translateY(0); }
-        
-        .toggle-btn { margin-top: 25px; font-size: 0.85rem; color: #0068ff; cursor: pointer; font-weight: 500; }
-        .toggle-btn:hover { text-decoration: underline; }
-        
-        .divider { margin: 20px 0; border-top: 1px solid #f0f0f0; position: relative; }
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0068ff", /* Đã chỉnh lại màu xanh giống Malo cũ */
+                        "background-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background-color: #e3f2fd; /* Màu nền cũ */
+        }
+        .form-input:focus {
+            border-color: #0068ff !important;
+            box-shadow: 0 0 0 2px rgba(0, 104, 255, 0.1) !important;
+        }
     </style>
 </head>
-<body>
 
-    <div class="login-box">
-        <h1>Malo</h1>
-        <p id="subTitle">Đăng nhập để kết nối bạn bè</p>
-        
-        <div class="input-group">
-            <label>Tên đăng nhập</label>
-            <input type="text" id="userInp" placeholder="Ví dụ: tung123">
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="mb-8 flex flex-col items-center gap-3">
+        <div class="size-14 flex items-center justify-center bg-primary rounded-2xl shadow-lg shadow-blue-500/20">
+            <svg class="text-white size-8" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M13.8261 30.5736C16.7203 29.8826 20.2244 29.4783 24 29.4783C27.7756 29.4783 31.2797 29.8826 34.1739 30.5736C36.9144 31.2278 39.9967 32.7669 41.3563 33.8352L24.8486 7.36089C24.4571 6.73303 23.5429 6.73303 23.1514 7.36089L6.64374 33.8352C8.00331 32.7669 11.0856 31.2278 13.8261 30.5736Z"
+                    fill="currentColor"></path>
+                <path clip-rule="evenodd"
+                    d="M39.998 35.764C39.9944 35.7463 39.9875 35.7155 39.9748 35.6706C39.9436 35.5601 39.8949 35.4259 39.8346 35.2825C39.8168 35.2403 39.7989 35.1993 39.7813 35.1602C38.5103 34.2887 35.9788 33.0607 33.7095 32.5189C30.9875 31.8691 27.6413 31.4783 24 31.4783C20.3587 31.4783 17.0125 31.8691 14.2905 32.5189C12.0012 33.0654 9.44505 34.3104 8.18538 35.1832C8.17384 35.2075 8.16216 35.233 8.15052 35.2592C8.09919 35.3751 8.05721 35.4886 8.02977 35.589C8.00356 35.6848 8.00039 35.7333 8.00004 35.7388C8.00004 35.739 8 35.7393 8.00004 35.7388C8.00004 35.7641 8.0104 36.0767 8.68485 36.6314C9.34546 37.1746 10.4222 37.7531 11.9291 38.2772C14.9242 39.319 19.1919 40 24 40C28.8081 40 33.0758 39.319 36.0709 38.2772C37.5778 37.7531 38.6545 37.1746 39.3151 36.6314C39.9006 36.1499 39.9857 35.8511 39.998 35.764ZM4.95178 32.7688L21.4543 6.30267C22.6288 4.4191 25.3712 4.41909 26.5457 6.30267L43.0534 32.777C43.0709 32.8052 43.0878 32.8338 43.104 32.8629L41.3563 33.8352C43.104 32.8629 43.1038 32.8626 43.104 32.8629L43.1051 32.865L43.1065 32.8675L43.1101 32.8739L43.1199 32.8918C43.1276 32.906 43.1377 32.9246 43.1497 32.9473C43.1738 32.9925 43.2062 33.0545 43.244 33.1299C43.319 33.2792 43.4196 33.489 43.5217 33.7317C43.6901 34.1321 44 34.9311 44 35.7391C44 37.4427 43.003 38.7775 41.8558 39.7209C40.6947 40.6757 39.1354 41.4464 37.385 42.0552C33.8654 43.2794 29.133 44 24 44C18.867 44 14.1346 43.2794 10.615 42.0552C8.86463 41.4464 7.30529 40.6757 6.14419 39.7209C4.99695 38.7775 3.99999 37.4427 3.99999 35.7391C3.99999 34.8725 4.29264 34.0922 4.49321 33.6393C4.60375 33.3898 4.71348 33.1804 4.79687 33.0311C4.83898 32.9556 4.87547 32.8935 4.9035 32.8471C4.91754 32.8238 4.92954 32.8043 4.93916 32.7889L4.94662 32.777L4.95178 32.7688ZM35.9868 29.004L24 9.77997L12.0131 29.004C12.4661 28.8609 12.9179 28.7342 13.3617 28.6282C16.4281 27.8961 20.0901 27.4783 24 27.4783C27.9099 27.4783 31.5719 27.8961 34.6383 28.6282C35.082 28.7342 35.5339 28.8609 35.9868 29.004Z"
+                    fill="currentColor" fill-rule="evenodd"></path>
+            </svg>
         </div>
-        
-        <div class="input-group">
-            <label>Mật khẩu</label>
-            <input type="password" id="passInp" placeholder="••••••••">
+        <h1 class="text-3xl font-extrabold tracking-tight text-primary">Malo</h1>
+    </div>
+
+    <div class="max-w-[460px] w-full bg-white rounded-3xl shadow-soft border border-gray-100/50 p-10 lg:p-12">
+        <div class="mb-8 text-center">
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight" id="mainTitle">Chào mừng bạn</h2>
+            <p class="text-gray-500 mt-2 text-sm" id="subTitle">Đăng nhập để kết nối bạn bè</p>
         </div>
-        
-        <button id="btnPrimary">Đăng nhập</button>
-        
-        <div class="divider"></div>
-        
-        <div class="toggle-btn" id="btnToggle">Bạn chưa có tài khoản? Đăng ký ngay</div>
+
+        <div class="space-y-5">
+            <div class="space-y-2">
+                <label class="text-gray-700 text-xs font-bold uppercase tracking-wider">Tên đăng nhập</label>
+                <div class="relative">
+                    <input id="userInp"
+                        class="form-input flex w-full rounded-xl text-gray-900 border border-gray-200 bg-gray-50/50 h-13 py-3 px-4 placeholder:text-gray-400 text-sm font-medium transition-all outline-none"
+                        placeholder="Ví dụ: tung123" type="text" />
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-gray-700 text-xs font-bold uppercase tracking-wider">Mật khẩu</label>
+                </div>
+                <div class="relative">
+                    <input id="passInp"
+                        class="form-input flex w-full rounded-xl text-gray-900 border border-gray-200 bg-gray-50/50 h-13 py-3 px-4 placeholder:text-gray-400 text-sm font-medium transition-all outline-none"
+                        placeholder="••••••••" type="password" />
+                </div>
+            </div>
+
+            <button id="btnPrimary" type="button"
+                class="w-full h-13 bg-primary text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 py-3.5 mt-4">
+                Đăng nhập
+            </button>
+        </div>
+
+        <div class="relative flex py-6 items-center">
+            <div class="flex-grow border-t border-gray-100"></div>
+            <span class="flex-shrink mx-4 text-gray-400 text-xs font-medium uppercase tracking-widest">Hoặc</span>
+            <div class="flex-grow border-t border-gray-100"></div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+            <button id="btnGoogle"
+                class="flex items-center justify-center gap-3 h-12 rounded-xl border border-gray-200 bg-white text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-all group">
+                <img alt="Google" class="size-5 opacity-80 group-hover:opacity-100 transition-opacity"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvMgUrKcp7L9WYWDIFiYPeeeFWzJiXozP6rTmayaoCR4V_Ehtgj8IOOV3JjiV17wwPnnlqFxYSOAsppLJ9YUFCgwWDAiijm34i_jjHZkYGqfyLj75bMFbSGz8piR1Xo69PmKkhkBZRMcrqssd4niWWYwO4vEDIXoY63am85ARFs-NEe8jm2H5Wx6G5PEhIhZB1KthNTsc-ehpv_fwEi5vCP2yZUwL7s7mfnW4F2t5qyE4FUC8Im1cbTrXPyK6_78UUkLVD0FJlw2U" />
+                Đăng nhập bằng Google
+            </button>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                <span id="textToggle">Bạn chưa có tài khoản?</span>
+                <a id="btnToggle" class="text-primary hover:underline font-bold cursor-pointer ml-1">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-10 text-center text-gray-400 text-xs">
+        <p>© 2026 Malo Inc. Kết nối mọi lúc, mọi nơi.</p>
+        <div class="mt-4 flex justify-center gap-6">
+            <a class="hover:text-gray-600 transition-colors" href="#">Riêng tư</a>
+            <a class="hover:text-gray-600 transition-colors" href="#">Điều khoản</a>
+            <a class="hover:text-gray-600 transition-colors" href="#">Hỗ trợ</a>
+        </div>
     </div>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <script type="module">
-        import { auth, db } from './firebase.js';
-        import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { auth, db, googleProvider } from './js/config.js';
+        import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const userInp = document.getElementById('userInp');
         const passInp = document.getElementById('passInp');
         const btnPrimary = document.getElementById('btnPrimary');
         const btnToggle = document.getElementById('btnToggle');
         const subTitle = document.getElementById('subTitle');
+        const mainTitle = document.getElementById('mainTitle');
+        const textToggle = document.getElementById('textToggle');
+        const btnGoogle = document.getElementById('btnGoogle');
 
         let isLoginMode = true;
 
@@ -71,7 +150,7 @@
                 duration: 3000,
                 gravity: "top",
                 position: "right",
-                style: { background: isError ? "#ff4d4f" : "#0068ff", borderRadius: "8px" }
+                style: { background: isError ? "#ef4444" : "#0068ff", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }
             }).showToast();
         };
 
@@ -87,6 +166,12 @@
                 return showToast("Vui lòng nhập đủ thông tin!", true);
             }
 
+            // Hiệu ứng loading nút
+            const originalText = btnPrimary.innerText;
+            btnPrimary.innerText = "Đang xử lý...";
+            btnPrimary.disabled = true;
+            btnPrimary.classList.add('opacity-70');
+
             if (isLoginMode) {
                 // LOGIC ĐĂNG NHẬP
                 try {
@@ -95,15 +180,22 @@
                     setTimeout(() => window.location.href = 'chat.html', 1000);
                 } catch (e) {
                     showToast("Sai tài khoản hoặc mật khẩu!", true);
+                    resetButton(originalText);
                 }
             } else {
                 // LOGIC ĐĂNG KÝ
-                if (username.length < 3) return showToast("Username phải từ 3 ký tự!", true);
-                if (password.length < 6) return showToast("Mật khẩu phải từ 6 ký tự!", true);
+                if (username.length < 3) {
+                    resetButton(originalText);
+                    return showToast("Username phải từ 3 ký tự!", true);
+                }
+                if (password.length < 6) {
+                    resetButton(originalText);
+                    return showToast("Mật khẩu phải từ 6 ký tự!", true);
+                }
 
                 try {
                     const userCredential = await createUserWithEmailAndPassword(auth, toEmail(username), password);
-                    
+
                     // Lưu username vào Firestore để người khác tìm thấy
                     await setDoc(doc(db, "users", username.toLowerCase()), {
                         username: username.toLowerCase(),
@@ -114,6 +206,7 @@
                     showToast("Đăng ký thành công! Đang đăng nhập...");
                     setTimeout(() => window.location.href = 'chat.html', 1500);
                 } catch (e) {
+                    resetButton(originalText);
                     if (e.code === 'auth/email-already-in-use') {
                         showToast("Username này đã có người sử dụng!", true);
                     } else {
@@ -123,19 +216,60 @@
             }
         };
 
+        const resetButton = (text) => {
+            btnPrimary.innerText = text;
+            btnPrimary.disabled = false;
+            btnPrimary.classList.remove('opacity-70');
+        }
+
         // Chuyển đổi giữa chế độ Đăng nhập và Đăng ký
         btnToggle.onclick = () => {
             isLoginMode = !isLoginMode;
             if (isLoginMode) {
+                mainTitle.innerText = "Chào mừng bạn";
                 btnPrimary.innerText = "Đăng nhập";
                 subTitle.innerText = "Đăng nhập để kết nối bạn bè";
-                btnToggle.innerText = "Bạn chưa có tài khoản? Đăng ký ngay";
+                textToggle.innerText = "Bạn chưa có tài khoản?";
+                btnToggle.innerText = "Đăng ký ngay";
             } else {
+                mainTitle.innerText = "Tạo tài khoản";
                 btnPrimary.innerText = "Tạo tài khoản Malo";
                 subTitle.innerText = "Tham gia cộng đồng Malo ngay hôm nay";
-                btnToggle.innerText = "Đã có tài khoản? Quay lại đăng nhập";
+                textToggle.innerText = "Đã có tài khoản?";
+                btnToggle.innerText = "Quay lại đăng nhập";
+            }
+        };
+
+        // GOOGLE LOGIN
+        btnGoogle.onclick = async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                const email = user.email;
+                const username = email.split('@')[0]; // Simple username from email
+
+                // Check if user exists, if not create
+                const userRef = doc(db, "users", username);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, {
+                        username: username,
+                        email: email,
+                        photoURL: user.photoURL,
+                        displayName: user.displayName,
+                        createdAt: new Date().toISOString()
+                    });
+                }
+
+                showToast("Đăng nhập Google thành công!");
+                setTimeout(() => window.location.href = 'chat.html', 1000);
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi đăng nhập Google!", true);
             }
         };
     </script>
 </body>
+
 </html>
