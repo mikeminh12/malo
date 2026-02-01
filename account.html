@@ -26,57 +26,107 @@
 </head>
 
 <body>
-    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden">
-        <div class="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600">
-            <a href="chat.html"
-                class="absolute top-4 left-4 text-white hover:text-blue-100 transition-colors flex items-center gap-2 font-medium">
-                <span class="material-symbols-outlined">arrow_back</span> Quay lại
-            </a>
-            <button id="btnLogout"
-                class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors backdrop-blur-sm">
-                Đăng xuất
-            </button>
-        </div>
+    <div class="flex h-[100dvh] w-full overflow-hidden">
 
-        <div class="px-8 pb-8 -mt-16 text-center">
-            <div class="relative mx-auto w-32 h-32 mb-4 group cursor-pointer"
-                onclick="document.getElementById('fileInput').click()">
-                <div id="avatarBox"
-                    class="w-full h-full rounded-full border-4 border-white shadow-md bg-white flex items-center justify-center text-4xl font-bold text-blue-500 overflow-hidden text-center">
-                    M
+        <!-- SIDEBAR (Desktop) -->
+        <aside class="hidden md:flex w-20 lg:w-24 flex-col bg-white border-r border-slate-100 h-full">
+            <div class="flex flex-col items-center justify-between h-full py-8">
+                <div class="flex flex-col items-center gap-10">
+                    <div
+                        class="size-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-lg">
+                        <span class="material-symbols-outlined">chat_bubble</span>
+                    </div>
+                    <nav class="flex flex-col gap-6 w-full px-2">
+                        <div onclick="window.location.href='chat.html'"
+                            class="group relative flex justify-center p-3 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-all">
+                            <span class="material-symbols-outlined text-[26px]">chat</span>
+                        </div>
+                        <div onclick="window.location.href='chat.html?tab=discover'"
+                            class="group relative flex justify-center p-3 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer transition-all">
+                            <span class="material-symbols-outlined text-[26px]">explore</span>
+                        </div>
+                    </nav>
                 </div>
-                <div
-                    class="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-md border border-gray-100 text-blue-500 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-[20px]">photo_camera</span>
+                <div id="navAvatar"
+                    class="size-10 rounded-2xl bg-slate-200 flex items-center justify-center font-bold cursor-pointer ring-2 ring-blue-500 ring-offset-2">
+                    <!-- Avatar content loaded by JS -->
                 </div>
             </div>
-            <input type="file" id="fileInput" class="hidden" accept="image/*">
+        </aside>
 
-            <h2 id="uDisplay" class="text-2xl font-bold text-gray-800 mb-1">Username</h2>
-            <p class="text-gray-400 text-sm mb-6">Thành viên Malo</p>
+        <!-- MAIN CONTENT -->
+        <main
+            class="flex-1 h-full overflow-y-auto bg-[#f9fafb] flex flex-col items-center justify-center p-4 pb-24 md:pb-4">
 
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tên hiển
-                        thị</label>
-                    <input id="uName" type="text"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
-                        placeholder="Nhập tên hiển thị...">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tiểu sử</label>
-                    <textarea id="uBio" rows="3"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
-                        placeholder="Giới thiệu về bản thân..."></textarea>
+            <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden relative">
+                <div class="relative h-32 bg-gradient-to-r from-blue-500 to-blue-600">
+                    <button id="btnLogout"
+                        class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors backdrop-blur-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">logout</span> Đăng xuất
+                    </button>
                 </div>
 
-                <button id="btnSave"
-                    class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20 mt-2">
-                    Lưu thay đổi
-                </button>
+                <div class="px-8 pb-8 -mt-16 text-center">
+                    <div class="relative mx-auto w-32 h-32 mb-4 group cursor-pointer"
+                        onclick="document.getElementById('fileInput').click()">
+                        <div id="avatarBox"
+                            class="w-full h-full rounded-full border-4 border-white shadow-md bg-white flex items-center justify-center text-4xl font-bold text-blue-500 overflow-hidden text-center">
+                            M
+                        </div>
+                        <div
+                            class="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-md border border-gray-100 text-blue-500 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-[20px]">photo_camera</span>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" class="hidden" accept="image/*">
+
+                    <h2 id="uDisplay" class="text-2xl font-bold text-gray-800 mb-1">Username</h2>
+                    <p class="text-gray-400 text-sm mb-6">Thành viên Malo</p>
+
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tên hiển
+                                thị</label>
+                            <input id="uName" type="text"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                                placeholder="Nhập tên hiển thị...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tiểu
+                                sử</label>
+                            <textarea id="uBio" rows="3"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                                placeholder="Giới thiệu về bản thân..."></textarea>
+                        </div>
+
+                        <button id="btnSave"
+                            class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20 mt-2">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
+
+    <!-- MOBILE NAVIGATION -->
+    <nav
+        class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 flex justify-around items-center py-3 z-40 pb-[env(safe-area-inset-bottom)]">
+        <div onclick="window.location.href='chat.html'"
+            class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-blue-600 cursor-pointer transition-colors w-16">
+            <span class="material-symbols-outlined">chat_bubble</span>
+            <span class="text-[10px] font-medium">Tin nhắn</span>
+        </div>
+        <div onclick="window.location.href='chat.html?tab=discover'"
+            class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-blue-600 cursor-pointer transition-colors w-16">
+            <span class="material-symbols-outlined">explore</span>
+            <span class="text-[10px] font-medium">Khám phá</span>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 text-blue-600 cursor-pointer transition-colors w-16">
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px] font-bold">Cá nhân</span>
+        </div>
+    </nav>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script type="module">
@@ -89,6 +139,7 @@
         const UPLOAD_PRESET = "malo_preset";
 
         const avatarBox = document.getElementById('avatarBox');
+        const navAvatar = document.getElementById('navAvatar'); // For Side Nav
         const fileInput = document.getElementById('fileInput');
         const uName = document.getElementById('uName');
         const uBio = document.getElementById('uBio');
@@ -107,38 +158,43 @@
             }).showToast();
         };
 
+        const renderAvatars = (url, nameChar) => {
+            const content = url
+                ? `<img src="${url}" class="w-full h-full object-cover">`
+                : (nameChar || "?");
+
+            // Main Profile
+            if (url) avatarBox.innerHTML = content;
+            else avatarBox.innerText = content;
+
+            // Side Nav (Desktop)
+            if (url) {
+                navAvatar.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-2xl">`;
+            } else {
+                navAvatar.innerText = nameChar || "?";
+            }
+        };
+
         onAuthStateChanged(auth, async user => {
             if (user) {
-                // Determine username - either from email or displayName if google auth (though our logic uses email prefix)
-                // For consistency with existing logic:
                 const email = user.email;
                 myName = email.split('@')[0];
 
-                // Fallback username if from creating with email
-                // We should really fetch the doc to get the canonical username but email prefix is what creates it.
-
-                // Try to get user doc
                 try {
-                    // Check if user document exists using `myName` (which is username)
                     let userDocRef = doc(db, "users", myName);
                     let userDoc = await getDoc(userDocRef);
 
-                    // If not found, it might be a google user who was just created in index.html, 
-                    // or `myName` logic varies. 
-                    // Let's assume username IS email prefix as per index.html logic.
-
                     if (userDoc.exists()) {
                         const data = userDoc.data();
-                        document.getElementById('uDisplay').innerText = data.displayName || data.username || myName;
+                        const disp = data.displayName || data.username || myName;
+                        document.getElementById('uDisplay').innerText = disp;
                         uName.value = data.displayName || "";
                         uBio.value = data.bio || "";
 
-                        if (data.photoURL) {
-                            avatarBox.innerHTML = `<img src="${data.photoURL}" class="w-full h-full object-cover">`;
-                        }
+                        renderAvatars(data.photoURL, disp[0].toUpperCase());
                     } else {
-                        // Fallback for viewing
                         document.getElementById('uDisplay').innerText = myName;
+                        renderAvatars(null, myName[0].toUpperCase());
                     }
 
                 } catch (e) { console.error(e); }
@@ -195,13 +251,13 @@
                     photoURL: imageUrl
                 });
 
-                avatarBox.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover">`;
+                renderAvatars(imageUrl, null);
                 showToast("Đã cập nhật ảnh đại diện!");
 
             } catch (err) {
                 console.error(err);
                 showToast("Lỗi tải ảnh!", true);
-                avatarBox.innerText = myName[0].toUpperCase();
+                renderAvatars(null, myName[0].toUpperCase());
             }
         };
 

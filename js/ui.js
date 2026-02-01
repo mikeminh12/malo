@@ -18,22 +18,81 @@ export const toast = (text, type = "info") => {
     }).showToast();
 };
 
-export const switchView = (view, setupCallbacks) => {
-    const mainList = $("mainList");
+export const renderTabIndicator = (tabId) => {
+    // Mobile Tabs (Bottom) - if we had them, but user prompt implies Side/Tab nav.
+    // Focusing on Sidebar Nav Animation.
+
+    // We remove the hardcoded indicator from HTML and manage it here or toggle classes.
+    // Strategy: We have 'navChat', 'navDiscover' for desktop, and 'mobileNavChat', 'mobileNavDiscover' for mobile.
+    const navs = ['navChat', 'navDiscover', 'mobileNavChat', 'mobileNavDiscover'];
+
+    // Map view aliases to DOM IDs
+    const activeMap = {
+        'navChat': 'mobileNavChat',
+        'navDiscover': 'mobileNavDiscover',
+        'mobileNavChat': 'navChat',
+        'mobileNavDiscover': 'navDiscover'
+    };
+
+    navs.forEach(id => {
+        const el = $(id);
+        if (!el) return;
+
+        // Remove existing indicator if any
+        const existing = el.querySelector(".indicator-bar");
+        if (existing) existing.remove();
+
+        const isActive = (id === tabId) || (activeMap[tabId] === id);
+
+        if (isActive) {
+            // Active Styles
+            el.classList.remove("text-slate-400", "hover:text-blue-600", "bg-transparent");
+            // Mobile vs Desktop differentiation
+            if (id.startsWith('mobile')) {
+                el.classList.add("text-blue-600");
+                // No bg change for mobile bottom nav usually, just text color
+            } else {
+                el.classList.add("bg-blue-50", "text-blue-600");
+                // Add Indicator with Animation (Desktop only)
+                const indicator = document.createElement("div");
+                indicator.className = "indicator-bar absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full animate-fade-in";
+                el.appendChild(indicator);
+            }
+        } else {
+            // Inactive Styles
+            if (id.startsWith('mobile')) {
+                el.classList.remove("text-blue-600");
+                el.classList.add("text-slate-400");
+            } else {
+                el.classList.remove("bg-blue-50", "text-blue-600");
+                el.classList.add("text-slate-400", "hover:text-blue-600", "bg-transparent");
+            }
+        }
+    });
+
+    // Handle Mobile Tabs (Top or Bottom if exist)
     const tabChats = $("tabChats");
     const tabDiscover = $("tabDiscover");
-
-    // Tab Styling
     const activeClass = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-colors";
     const inactiveClass = "pb-3 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors";
 
-    if (view === "chats") {
+    if (tabId === 'navChat' || tabId === 'tabChats') { // Map nav to tab
         if (tabChats) tabChats.className = activeClass;
         if (tabDiscover) tabDiscover.className = inactiveClass;
-        if (setupCallbacks && setupCallbacks.loadFriends) setupCallbacks.loadFriends();
-    } else if (view === "discover") {
+    } else {
         if (tabDiscover) tabDiscover.className = activeClass;
         if (tabChats) tabChats.className = inactiveClass;
+    }
+};
+
+export const switchView = (view, setupCallbacks) => {
+    const mainList = $("mainList");
+
+    if (view === "chats") {
+        renderTabIndicator('navChat');
+        if (setupCallbacks && setupCallbacks.loadFriends) setupCallbacks.loadFriends();
+    } else if (view === "discover") {
+        renderTabIndicator('navDiscover');
         if (setupCallbacks && setupCallbacks.loadDiscover) setupCallbacks.loadDiscover();
     }
 };
@@ -100,7 +159,8 @@ export const renderFriendItem = (data) => {
     // data: { id, displayName, photoURL, unseenCount, isOnline }
     const div = document.createElement("div");
     // Styling: Card layout (previously 'card' class in css? Let's use Tailwind)
-    div.className = "flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:bg-blue-50 cursor-pointer transition-all mb-3 relative overflow-visible";
+    div.className = "friend-item flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:bg-blue-50 cursor-pointer transition-all mb-3 relative overflow-visible";
+    div.dataset.id = data.id; // For easy selection
 
     const name = data.displayName || data.id;
     const avatarChar = name[0].toUpperCase();
@@ -118,18 +178,10 @@ export const renderFriendItem = (data) => {
         ? `<div class="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-white z-20"></div>`
         : `<div class="absolute bottom-0 right-0 size-3 bg-slate-300 rounded-full border-2 border-white z-20"></div>`;
 
-    // Unseen Badge (Red Dot)
-    // "Left of user's card" usually means left of the whole item? Or left of the text? 
-    // User request: "left of the user'card have a red dot"
-    // Assuming absolute positioned badge on top-right or left. 
-    // Let's put a prominent badge on the RIGHT side usually for badges, 
-    // BUT user said "Left". So we put it absolute left or just flex order.
-    // Let's place it floating on the top-left corner of the avatar for visibility.
-
     let badgeHtml = "";
     if (data.unseenCount > 0) {
         badgeHtml = `
-            <div class="absolute -top-1 -left-1 min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1 shadow-md z-30">
+            <div id="badge-${data.id}" class="absolute -top-1 -left-1 min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1 shadow-md z-30 transition-transform">
                 ${data.unseenCount > 99 ? '99+' : data.unseenCount}
             </div>
         `;
@@ -147,6 +199,18 @@ export const renderFriendItem = (data) => {
         </div>
     `;
 
+    // Add click listener to hide badge immediately
+    div.addEventListener("click", () => {
+        const badge = document.getElementById(`badge-${data.id}`);
+        if (badge) {
+            badge.style.display = 'none'; // Force hide
+            badge.classList.add("hidden");
+        }
+
+        // Also update the data passed to it visually if possible, though UI refresh comes from DB listener
+        // But instant feedback is key.
+    });
+
     return div;
 };
 
@@ -159,10 +223,6 @@ export const notify = (title, body) => {
 export const scrollToBottom = (id, smooth = true) => {
     const el = $(id);
     if (!el) return;
-
-    // We can just scroll. The 'smart' logic will be handled by the caller (db.js)
-    // determining WHETHER to call this. 
-    // But we'll add a small timeout to ensure DOM render completion (especially for images)
 
     setTimeout(() => {
         el.scrollTo({
@@ -182,7 +242,8 @@ export const isAtBottom = (id) => {
 export const renderPinnedMessage = (msgData) => {
     const el = $("pinnedMsg");
     const txt = $("pinnedText");
-    if (!el || !txt) return;
+    if (!el || !txt) return; // Wait, txt not found in code, maybe a mistake in variable naming previously? 
+    // Just protecting against null el is enough.
 
     if (msgData) {
         el.className = "px-6 py-2 bg-yellow-50 border-b border-yellow-100 flex items-center gap-3 cursor-pointer hover:bg-yellow-100 transition-colors z-20";
@@ -195,10 +256,7 @@ export const renderPinnedMessage = (msgData) => {
                     target.classList.add('bg-yellow-100');
                     setTimeout(()=>target.classList.remove('bg-yellow-100'), 2000);
                 } else {
-                    // It's defined in db.js scope usually, but toast is exported here. 
-                    // We can reuse the onclick or logic passed in. 
-                    // Simplified: We rely on global access or just simple scroll for now.
-                    alert('Tin nhắn đã cũ, hãy cuộn lên để tìm!'); 
+                    alert('Tin nhắn đã cũ hoặc chưa tải!'); 
                 }
             ">
                 <p class="text-xs font-bold text-yellow-700">Pinned Message</p>
@@ -208,8 +266,9 @@ export const renderPinnedMessage = (msgData) => {
                 <span class="material-symbols-outlined text-sm">close</span>
             </button>
         `;
+        el.classList.remove('hidden');
     } else {
-        el.className = "hidden";
+        el.classList.add("hidden");
     }
 };
 
@@ -235,7 +294,7 @@ export const renderEmptyState = (show) => {
         if (box) box.innerHTML = `
             <div class="h-full flex flex-col items-center justify-center text-slate-300">
                 <span class="material-symbols-outlined text-6xl mb-2">chat_bubble_outline</span>
-                <p>Select a friend to start chatting</p>
+                <p>Chọn một người bạn để bắt đầu</p>
             </div>
         `;
         if (title) title.innerText = "Malo Messenger";

@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Malo | Đăng nhập</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
@@ -242,6 +243,10 @@
 
         // GOOGLE LOGIN
         btnGoogle.onclick = async () => {
+            // Disable button to prevent double clicks
+            btnGoogle.disabled = true;
+            btnGoogle.classList.add('opacity-50', 'cursor-not-allowed');
+
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
@@ -265,8 +270,22 @@
                 showToast("Đăng nhập Google thành công!");
                 setTimeout(() => window.location.href = 'chat.html', 1000);
             } catch (error) {
-                console.error(error);
-                showToast("Lỗi đăng nhập Google!", true);
+                console.error("Google Sign In Error:", error);
+
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showToast("Bạn đã đóng cửa sổ đăng nhập.", true);
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    // Usually handled silently as it means another popup took over or user clicked twice
+                    // But since we disabled the button, this specific cause is reduced.
+                    // However, multiple tabs/windows could cause this.
+                    showToast("Yêu cầu đăng nhập bị hủy.", true);
+                } else {
+                    showToast("Lỗi đăng nhập Google: " + error.message, true);
+                }
+            } finally {
+                // Re-enable button
+                btnGoogle.disabled = false;
+                btnGoogle.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         };
     </script>

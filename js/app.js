@@ -4,6 +4,7 @@
 import { switchView, $, toast, renderAvatar, toggleMobileChat } from "./ui.js";
 import { initAuth, logout } from "./auth.js";
 import * as DB from "./db.js";
+import { initWebRTC, startCall } from "./webrtc.js";
 
 let myName = "";
 
@@ -22,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
             else DB.setOnlineStatus(myName, false);
         });
 
+        // Initialize WebRTC Listener
+        initWebRTC(myName);
+
         // Notifications
         if ("Notification" in window && Notification.permission !== "granted") {
             Notification.requestPermission();
@@ -32,7 +36,20 @@ document.addEventListener("DOMContentLoaded", () => {
             loadFriends: () => DB.loadFriends(myName, (target) => {
                 DB.startChat(myName, target);
                 document.querySelector("footer")?.classList.remove("hidden");
-                toggleMobileChat(true); // Slide in chat on mobile
+
+                // Show Call Button
+                const btnCall = $("btnCall");
+                if (btnCall) {
+                    btnCall.classList.remove("hidden");
+                    btnCall.onclick = () => startCall(myName, target);
+                }
+
+                // History Logic for Mobile
+                // Only push if we are not already in a chat state (simple check)
+                if (!history.state || !history.state.chatOpen) {
+                    history.pushState({ chatOpen: true }, "", "#chat");
+                }
+                toggleMobileChat(true);
             }),
             loadDiscover: () => DB.loadDiscover(myName, {
                 sendRequest: (id) => DB.sendRequest(myName, id),
@@ -49,23 +66,62 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Mobile Back Button
+    // Mobile Back Button (Browser/Hardware)
+    window.onpopstate = (event) => {
+        // If we pop back to null state or state without chatOpen, close chat
+        if (!event.state || !event.state.chatOpen) {
+            toggleMobileChat(false);
+            const btnCall = $("btnCall");
+            if (btnCall) btnCall.classList.add("hidden");
+        } else {
+            // Forward navigation to chat? 
+            toggleMobileChat(true);
+        }
+    };
+
+    // Mobile UI Back Button (if exists)
     const btnBack = $("btnBack");
-    if (btnBack) btnBack.onclick = () => toggleMobileChat(false);
+    if (btnBack) {
+        btnBack.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // If we have history, go back. 
+            if (history.length > 1) {
+                history.back();
+            } else {
+                // Fallback if opened directly or weird state
+                toggleMobileChat(false);
+                const btnCall = $("btnCall");
+                if (btnCall) btnCall.classList.add("hidden");
+            }
+        });
+    }
 
     // Navigation Events
     const navItems = [
         { id: "navChat", view: "chats" },
         { id: "tabChats", view: "chats" },
         { id: "navDiscover", view: "discover" },
-        { id: "tabDiscover", view: "discover" }
+        { id: "tabDiscover", view: "discover" },
+        { id: "mobileNavChat", view: "chats" },
+        { id: "mobileNavDiscover", view: "discover" }
     ];
 
     navItems.forEach(item => {
         const el = $(item.id);
         if (el) {
             el.onclick = () => switchView(item.view, {
-                loadFriends: () => DB.loadFriends(myName, (target) => DB.startChat(myName, target)),
+                loadFriends: () => DB.loadFriends(myName, (target) => {
+                    DB.startChat(myName, target);
+
+                    // Helper: DRY call button logic if needed, but for now duplicate
+                    // Actually simplest is just to make sure btnCall shows up
+                    const btnCall = $("btnCall");
+                    if (btnCall) {
+                        btnCall.classList.remove("hidden");
+                        btnCall.onclick = () => startCall(myName, target);
+                    }
+                }),
                 loadDiscover: () => DB.loadDiscover(myName, {
                     sendRequest: (id) => DB.sendRequest(myName, id),
                     acceptFriend: (id) => DB.acceptFriend(myName, id).then(() => {
